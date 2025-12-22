@@ -2,6 +2,7 @@
 #include <binary_tree.hpp>
 
 using namespace std;
+using namespace BT;
 
 Node* BinaryTree::search(double value) {
     Node* curr_node = BinaryTree::root;
@@ -58,6 +59,20 @@ void BinaryTree::insert(double value) {
     }
 }
 
+/* It places node y in the position of node x, and node x 
+    will no longer be in its previous location. */
+void BinaryTree::transplant(Node* x, Node* y) {
+    if (!x->parent) {
+        BinaryTree::root = y;
+    } else {
+        if (x->parent->left == x)
+            x->parent->left = y;
+        else
+            x->parent->right = y;
+    }
+    y->parent = x->parent;
+}
+
 // Print values in order
 void BinaryTree::print(Node* curr_root=nullptr) {
     if (!curr_root)
@@ -83,4 +98,36 @@ Node* BinaryTree::get_max(Node* curr_root=nullptr) {
         return curr_root;
     else
         return get_max(curr_root->right);
+}
+
+void BinaryTree::remove(double value) {
+    Node* node = search(value);
+
+    if (node) {
+        if (node->left && !node->right)
+            transplant(node, node->left);
+        else if (!node->left && node->right)
+            transplant(node, node->right);
+        else if (node->left && node->right) {
+            Node* node_succ = get_min(node->right);
+
+            if (node->right != node_succ) {
+                transplant(node_succ, node_succ->right);
+                node_succ->right = node->right;
+            }
+            transplant(node, node_succ);
+
+            node_succ->left = node->left;
+        } else {
+            if (!node->parent)
+                BinaryTree::root = nullptr;
+            else {
+                if (node->parent->left == node)
+                    node->parent->left = nullptr;
+                else
+                    node->parent->right = nullptr;
+            }
+        }
+        delete node;
+    }
 }
